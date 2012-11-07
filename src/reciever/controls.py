@@ -3,20 +3,21 @@ import serial
 import threading
 from collections import deque
 
-COMPORT = 3
+COMPORT = 0
 BAUD = 9600
 
 
 class Controls(object):
     def __init__(self):
         # top level variables to store OpenWing control status
+        # create these all as lists, so we can modify them by reference easily
         self.faders = list((0,0,0,0,0,0,0,0))
         self.buttons = list((False, False, False, False))
-        self.battery = None
-        self.ip_address = "0.0.0.0"
-        self.comport = COMPORT
+        self.power = list((None))
+        self.ip_address = list(("0.0.0.0"))
 
         # configuration and communication info
+        self.comport = COMPORT
         self.baud = BAUD
         self.outbound = deque()
         self.inbound = deque()
@@ -43,12 +44,20 @@ class Controls(object):
             will be threaded out into the background.
         """
 
+        # create references to all of the control state lists to avoid sending extra characters
+        f=self.faders
+        b=self.buttons
+        p=self.power
+        ip=self.ip_address
+
         try:
             s = serial.Serial(comport, baud)
 
             while not self.end_thread:
+
                 # process incoming messages
-                raw = s.readline()
+                raw = s.readline() #read everything up to the next endline
+
                 #print repr(raw)
 
                 notraw = raw.rstrip('\r\n')

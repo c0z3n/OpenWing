@@ -33,9 +33,13 @@ int  fader_raws[]          = {0, 0, 0, 0, 0, 0, 0, 0};
 byte fader_vals[]          = {0, 0, 0, 0, 0, 0, 0, 0};
 byte last_fader_vals[]     = {0, 0, 0, 0, 0, 0, 0, 0};
 
+byte trackX                = 0;
+byte trackY                = 0;
+
 void setup(){
   analogReference(EXTERNAL);
   Serial2.begin(9600);
+  Serial.begin(9600);
   for(int i=0; i<4; i++){
     for(int n=0; n<3; n++){
       pinMode(colorpins[i][n], OUTPUT);
@@ -50,6 +54,10 @@ void setup(){
     fader_raws[i] = analogRead(faders[i]);
     fader_vals[i] = last_fader_vals[i] = map(fader_raws[i], 0, 1023, 0, 255);
   }
+  attachInterrupt(2, trackLeft, CHANGE);
+  attachInterrupt(3, trackRight, CHANGE);
+  attachInterrupt(4, trackUp, CHANGE);
+  attachInterrupt(5, trackDown, CHANGE);
 }
 
 void loop(){
@@ -116,4 +124,19 @@ void send_data(){
   for(int i=0; i<8; i++){
     Serial2.write(fader_vals[i]);
   }
+  Serial2.write(trackX);
+  Serial2.write(trackX);
+}
+
+void trackUp(){
+  trackY = trackY + 1;
+}
+void trackDown(){
+  trackY = trackY + 1;
+}
+void trackLeft(){
+  trackX = trackX + 1;
+}
+void trackRight(){
+  trackX = trackX + 1;
 }

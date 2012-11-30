@@ -125,18 +125,20 @@ void send_data(){
     Serial2.write(fader_vals[i]);
   }
   Serial2.write(trackX);
-  Serial2.write(trackX);
+  Serial2.write(trackY);
+  trackX = trackY = 0;
+  
 }
 
 void trackUp(){
   trackY = trackY + 1;
 }
 void trackDown(){
-  trackY = trackY + 1;
+  trackY = trackY - 1;
 }
 void trackLeft(){
   trackX = trackX + 1;
 }
 void trackRight(){
-  trackX = trackX + 1;
+  trackX = trackX - 1;
 }

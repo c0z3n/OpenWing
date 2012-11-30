@@ -101,7 +101,6 @@ class Controls(object):
                 self.trackball[1] += listdata[13]
                 self.trackball[0] -= listdata[14]
                 self.trackball[1] -= listdata[15]
-                print repr(self.trackball)
 
         except Exception as e:
             print e

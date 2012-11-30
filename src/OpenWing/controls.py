@@ -54,7 +54,7 @@ class Controls(object):
         if not 0 <= lednum <= 4:
             raise ValueError("invalid lednum provided, \"%s\" is out of range" %lednum)
 
-        self.outbound.append("lx" + chr(lednum) + chr(color[0]) + chr(color[1]) + chr(color[2]))
+        self.outbound.append("lx" + chr(lednum) + chr(255-color[0]) + chr(255-color[1]) + chr(255-color[2]))
 
 
     def spawn_updater(self):

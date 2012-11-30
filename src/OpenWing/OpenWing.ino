@@ -20,96 +20,93 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
-const int FMAX = 255;
+const int myIp[]           = {192, 168, 10, 210};
+const byte myMac[]         = {0x90, 0xA2, 0xDA, 0x0D, 0x18, 0x24};
+const int faders[]         = {4, 5, 6, 7, 8, 9, 10, 11};
+const int colorpins[][3]   = {{12, 13, 11}, {8, 9, 7}, {5, 6, 4}, {2, 3, 44}};
+const int buttons[]        = {A0, A1, A2, A3};
 
-const int myIp[]   = { 192, 168, 10, 210 };
-const byte myMac[] = { 0x90, 0xA2, 0xDA, 0x0D, 0x18, 0x24 };
-const int buttons[] = {A0, A1, A2, A3 };
-byte lastbuttons[] = {0, 0, 0, 0};
-const int faders[] = {4, 5, 6, 7, 8, 9, 10, 11};
-const int colorpins[][3] = {{12, 13, 11}, {8, 9, 7}, {5, 6, 4}, {2, 3, 44}};
-int colorvals[][3] = {{255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}};
-byte BSTATES[] = {0, 0, 0, 0};
-int fader_raws[] = {0,0,0,0,0,0,0,0};
-byte fader_vals[] = {0,0,0,0,0,0,0,0};
-byte last_fader_vals[] = {0,0,0,0,0,0,0,0};
-
-
+int  colorvals[][3]        = {{255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}};
+byte lastbuttons[]         = {0, 0, 0, 0};
+byte button_states[]       = {0, 0, 0, 0};
+int  fader_raws[]          = {0, 0, 0, 0, 0, 0, 0, 0};
+byte fader_vals[]          = {0, 0, 0, 0, 0, 0, 0, 0};
+byte last_fader_vals[]     = {0, 0, 0, 0, 0, 0, 0, 0};
 
 void setup(){
-  analogReference(EXTERNAL);  
-  Serial2.begin(9600);  
-  Serial.begin(9600);  
-   for(int i=0; i<4; i++){
-     for(int n=0; n<3; n++){
-       pinMode(colorpins[i][n], OUTPUT);
-       analogWrite(colorpins[i][n], 255);
-     }
-   }
-   for(int i=0; i<4; i++){
-     pinMode(buttons[i], INPUT);
-     digitalWrite(buttons[i], HIGH); // enable internal pullup
-   }
-   for(int i=0; i<8; i++){
-     fader_raws[i] = analogRead(faders[i]);
-     fader_vals[i] = last_fader_vals[i] = map(fader_raws[i], 0, 1023, 0, FMAX);     
-   }
-}
-void loop(){
-  // read in the button states
-     for(int i=0; i<4; i++){
-       if(digitalRead(buttons[i]) == LOW){
-         BSTATES[i] = 1;
-       }
-       else{
-         BSTATES[i] = 0;
-       } 
-     }
-  // read the fader states and map them to the correct range
-     for(int i=0; i<8; i++){
-       fader_raws[i] = analogRead(faders[i]);
-       fader_vals[i] = map(fader_raws[i], 0, 1023, 0, FMAX);
-     }
-  // read incoming messages (for LEDs)
-     if(Serial2.available() > 1){
-       byte c1 = Serial2.read();
-       byte c2 = Serial2.read();
-       if(c1 == 'l' && c2 == 'x'){
-         byte lednum = Serial2.read();
-         byte r = Serial2.read();
-         byte g = Serial2.read();
-         byte b = Serial2.read();
-         colorvals[lednum][0] = int(r);
-         colorvals[lednum][1] = int(g);
-         colorvals[lednum][2] = int(b);
-       }
-     }
-     set_colors();
-     send_data();
-     delay(25);    
+  analogReference(EXTERNAL);
+  Serial2.begin(9600);
+  for(int i=0; i<4; i++){
+    for(int n=0; n<3; n++){
+      pinMode(colorpins[i][n], OUTPUT);
+      analogWrite(colorpins[i][n], 255);
+    }
+  }
+  for(int i=0; i<4; i++){
+    pinMode(buttons[i], INPUT);
+    digitalWrite(buttons[i], HIGH); // enable internal pullup
+  }
+  for(int i=0; i<8; i++){
+    fader_raws[i] = analogRead(faders[i]);
+    fader_vals[i] = last_fader_vals[i] = map(fader_raws[i], 0, 1023, 0, FMAX);
+  }
 }
 
-void set_colors(){   
+void loop(){
+  // read in the button states
   for(int i=0; i<4; i++){
-     for(int n=0; n<3; n++){
-       if(BSTATES[i] == 1){
-         digitalWrite(colorpins[i][0], 0);
-         digitalWrite(colorpins[i][1], 0);
-         digitalWrite(colorpins[i][2], 0);
-       }
-       else{
-         digitalWrite(colorpins[i][0], colorvals[i][0]);
-         digitalWrite(colorpins[i][1], colorvals[i][1]);
-         digitalWrite(colorpins[i][2], colorvals[i][1]);
-       }
-     }
+    if(digitalRead(buttons[i]) == LOW){
+      button_states[i] = 1;
+    }
+    else{
+      button_states[i] = 0;
+    } 
+  }
+  // read the fader states and map them to the correct range
+  for(int i=0; i<8; i++){
+    fader_raws[i] = analogRead(faders[i]);
+    fader_vals[i] = map(fader_raws[i], 0, 1023, 0, FMAX);
+  }
+  // read incoming messages (for LEDs)
+  if(Serial2.available() > 1){
+    byte c1 = Serial2.read();
+    byte c2 = Serial2.read();
+    if(c1 == 'l' && c2 == 'x'){
+      byte lednum = Serial2.read();
+      byte r = Serial2.read();
+      byte g = Serial2.read();
+      byte b = Serial2.read();
+      colorvals[lednum][0] = int(r);
+      colorvals[lednum][1] = int(g);
+      colorvals[lednum][2] = int(b);
+    }
+  }
+  set_colors();
+  send_data();
+  delay(25);
+}
+
+void set_colors(){
+  for(int i=0; i<4; i++){
+    for(int n=0; n<3; n++){
+      if(button_states[i] == 1){
+        digitalWrite(colorpins[i][0], 0);
+        digitalWrite(colorpins[i][1], 0);
+        digitalWrite(colorpins[i][2], 0);
+      }
+      else{
+        digitalWrite(colorpins[i][0], colorvals[i][0]);
+        digitalWrite(colorpins[i][1], colorvals[i][1]);
+        digitalWrite(colorpins[i][2], colorvals[i][1]);
+      }
+    }
   }
 }
   
 void send_data(){
   Serial2.write("dx");
   for(int i=0; i<4; i++){
-    Serial2.write(BSTATES[i]);
+    Serial2.write(button_states[i]);
   }
   for(int i=0; i<8; i++){
     Serial2.write(fader_vals[i]);

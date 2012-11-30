@@ -93,15 +93,15 @@ void set_colors(){
     for(int n=0; n<3; n++){
       if(button_states[i] == 1){
         // if a button is pressed, override the color with white.
-        digitalWrite(colorpins[i][0], 0);
-        digitalWrite(colorpins[i][1], 0);
-        digitalWrite(colorpins[i][2], 0);
+        analogWrite(colorpins[i][0], 0);
+        analogWrite(colorpins[i][1], 0);
+        analogWrite(colorpins[i][2], 0);
       }
       else{
         // else use the color as defined in colorvals
-        digitalWrite(colorpins[i][0], colorvals[i][0]);
-        digitalWrite(colorpins[i][1], colorvals[i][1]);
-        digitalWrite(colorpins[i][2], colorvals[i][1]);
+        analogWrite(colorpins[i][0], colorvals[i][0]);
+        analogWrite(colorpins[i][1], colorvals[i][1]);
+        analogWrite(colorpins[i][2], colorvals[i][1]);
       }
     }
   }

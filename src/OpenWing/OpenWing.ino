@@ -53,24 +53,25 @@ void setup(){
 }
 
 void loop(){
-  // read in the button states
   for(int i=0; i<4; i++){
+  // check the state of each button
     if(digitalRead(buttons[i]) == LOW){
       button_states[i] = 1;
     }
     else{
       button_states[i] = 0;
-    } 
+    }
   }
-  // read the fader states and map them to the correct range
+  // check the fader states and map them to the correct range
   for(int i=0; i<8; i++){
     fader_raws[i] = analogRead(faders[i]);
     fader_vals[i] = map(fader_raws[i], 0, 1023, 0, FMAX);
   }
-  // read incoming messages (for LEDs)
+  // read incoming serial messages
   if(Serial2.available() > 1){
     byte c1 = Serial2.read();
     byte c2 = Serial2.read();
+    // check for the alignment key
     if(c1 == 'l' && c2 == 'x'){
       byte lednum = Serial2.read();
       byte r = Serial2.read();
@@ -87,14 +88,17 @@ void loop(){
 }
 
 void set_colors(){
+// handle setting led colors
   for(int i=0; i<4; i++){
     for(int n=0; n<3; n++){
       if(button_states[i] == 1){
+        // if a button is pressed, override the color with white.
         digitalWrite(colorpins[i][0], 0);
         digitalWrite(colorpins[i][1], 0);
         digitalWrite(colorpins[i][2], 0);
       }
       else{
+        // else use the color as defined in colorvals
         digitalWrite(colorpins[i][0], colorvals[i][0]);
         digitalWrite(colorpins[i][1], colorvals[i][1]);
         digitalWrite(colorpins[i][2], colorvals[i][1]);
@@ -102,8 +106,9 @@ void set_colors(){
     }
   }
 }
-  
+
 void send_data(){
+  // send the states of all buttons and faders over serial
   Serial2.write("dx");
   for(int i=0; i<4; i++){
     Serial2.write(button_states[i]);

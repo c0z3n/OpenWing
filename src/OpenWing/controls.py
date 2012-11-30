@@ -26,6 +26,7 @@ class Controls(object):
         # top level variables to store OpenWing control status
         self.fader      = list((0, 0, 0, 0, 0, 0, 0, 0))
         self.button     = list((0, 0, 0, 0))
+        self.trackball  = list((0, 0))
 
         # configuration and communication info
         self.ip_address = "0.0.0.0"
@@ -33,7 +34,6 @@ class Controls(object):
         self.baud       = baud
         self.outbound   = deque()
         self.inbound    = deque()
-        self.comport    = 0
         self.delay      = 0
         self.thread     = None
         self.end_thread = False
@@ -88,7 +88,7 @@ class Controls(object):
                     # print "misaligned"
 
                 # get the list of raw bytes as chars from the serial
-                rawdata = s.read(12)
+                rawdata = s.read(14)
                 listdata = list()
                 # convert them into a list of usable numbers
                 for n in xrange(len(rawdata)):
@@ -97,6 +97,14 @@ class Controls(object):
                 # apply that the new data to the control objects
                 self.button = listdata[:4]
                 self.fader = listdata[4:12]
+                self.trackball[0] += listdata[12]
+                self.trackball[1] += listdata[13]
+                print repr(self.trackball)
 
         except Exception as e:
             print e
+
+
+if __name__ == "__main__":
+    c = Controls(3)
+

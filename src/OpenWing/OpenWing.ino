@@ -33,8 +33,10 @@ int  fader_raws[]          = {0, 0, 0, 0, 0, 0, 0, 0};
 byte fader_vals[]          = {0, 0, 0, 0, 0, 0, 0, 0};
 byte last_fader_vals[]     = {0, 0, 0, 0, 0, 0, 0, 0};
 
-byte trackX                = 0;
-byte trackY                = 0;
+byte trackXp               = 0;
+byte trackYp               = 0;
+byte trackXm               = 0;
+byte trackYm               = 0;
 
 void setup(){
   analogReference(EXTERNAL);
@@ -124,21 +126,23 @@ void send_data(){
   for(int i=0; i<8; i++){
     Serial2.write(fader_vals[i]);
   }
-  Serial2.write(trackX);
-  Serial2.write(trackY);
-  trackX = trackY = 0;
+  Serial2.write(trackXp);
+  Serial2.write(trackYp);
+  Serial2.write(trackXm);
+  Serial2.write(trackYm);
+  trackXm = trackYm = trackXp = trackYp = 0;
   
 }
 
 void trackUp(){
-  trackY = trackY + 1;
+  trackYp = trackYp + 1;
 }
 void trackDown(){
-  trackY = trackY - 1;
+  trackYm = trackYm + 1;
 }
 void trackLeft(){
-  trackX = trackX + 1;
+  trackXp = trackXp + 1;
 }
 void trackRight(){
-  trackX = trackX - 1;
+  trackXm = trackXm + 1;
 }

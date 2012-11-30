@@ -88,7 +88,7 @@ class Controls(object):
                     # print "misaligned"
 
                 # get the list of raw bytes as chars from the serial
-                rawdata = s.read(14)
+                rawdata = s.read(16)
                 listdata = list()
                 # convert them into a list of usable numbers
                 for n in xrange(len(rawdata)):
@@ -99,6 +99,8 @@ class Controls(object):
                 self.fader = listdata[4:12]
                 self.trackball[0] += listdata[12]
                 self.trackball[1] += listdata[13]
+                self.trackball[0] -= listdata[14]
+                self.trackball[1] -= listdata[15]
                 print repr(self.trackball)
 
         except Exception as e:

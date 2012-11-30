@@ -24,23 +24,19 @@ from collections import deque
 class Controls(object):
     def __init__(self, comport, baud=9600):
         # top level variables to store OpenWing control status
-        self.fader = list((0,0,0,0,0,0,0,0))
-        self.button = list((0, 0, 0, 0))
-
-
+        self.fader      = list((0, 0, 0, 0, 0, 0, 0, 0))
+        self.button     = list((0, 0, 0, 0))
 
         # configuration and communication info
         self.ip_address = "0.0.0.0"
-        self.comport = comport
-        self.baud = baud
-        self.outbound = deque()
-        self.inbound = deque()
-        self.comport = 0
-        self.delay = 0
-        self.thread = None
+        self.comport    = comport
+        self.baud       = baud
+        self.outbound   = deque()
+        self.inbound    = deque()
+        self.comport    = 0
+        self.delay      = 0
+        self.thread     = None
         self.end_thread = False
-
-        
 
         # spawn our thread to update control values
         self.spawn_updater()
@@ -50,15 +46,14 @@ class Controls(object):
             lednum should be the number of the led to set, 0-3
             color should be a tuple of three color values (r,g,b), each 0-255
         """
-
         # validate the parameters
         for c in color:
-            if not 0<=c <= 255:
-                raise ValueError("invalid color value provided, out of range")
-                return
-        if not 0<=lednum<=4:
-            raise ValueError("invalid lednum provided, out of range.")
-            
+            if not 0 <= c <= 255:
+                raise ValueError("invalid color value provided, \"%s\" is out of range" %c)
+
+        if not 0 <= lednum <= 4:
+            raise ValueError("invalid lednum provided, \"%s\" is out of range" %lednum)
+
         self.outbound.append("lx" + chr(lednum) + chr(color[0]) + chr(color[1]) + chr(color[2]))
 
 
@@ -77,9 +72,7 @@ class Controls(object):
         """
         try:
             s = serial.Serial(self.comport, self.baud)
-
             while not self.end_thread:
-
                 # see if we have anything to send to the device
                 if len(self.outbound) > 0:
                     s.write(self.outbound[0])
@@ -87,17 +80,16 @@ class Controls(object):
 
                 # make sure we are aligned properly on the string by looking for a key of "dx"
                 while True:
-                    a1=s.read(1)
+                    a1 = s.read(1)
                     if a1 == "d":
                         a2 = s.read(1)
                         if a2 == "x":
                             break
-                    print "misaligned"
+                    # print "misaligned"
 
                 # get the list of raw bytes as chars from the serial
                 rawdata = s.read(12)
                 listdata = list()
-
                 # convert them into a list of usable numbers
                 for n in xrange(len(rawdata)):
                     listdata.append(ord(rawdata[n]))
@@ -106,9 +98,5 @@ class Controls(object):
                 self.button = listdata[:4]
                 self.fader = listdata[4:12]
 
-                # print repr(self.fader), repr(self.button)
-
         except Exception as e:
             print e
-
-

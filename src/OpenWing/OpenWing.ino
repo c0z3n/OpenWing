@@ -20,6 +20,12 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
+#define WIRELESS_SEND  true  //set true to stream control data over the wireless connection (if wireless radio is present)
+#define USB_SEND       true  //set true to stream control data over the usb connection
+#define OSC_SEND       true  //set true to send control data as OSC over ethernet IP network (if ethernet hardware is present)
+
+
+
 const int myIp[]           = {192, 168, 10, 210};
 const byte myMac[]         = {0x90, 0xA2, 0xDA, 0x0D, 0x18, 0x24};
 const int faders[]         = {4, 5, 6, 7, 8, 9, 10, 11};
@@ -40,8 +46,8 @@ byte trackYm               = 0;
 
 void setup(){
   analogReference(EXTERNAL);
-  Serial2.begin(9600);
-  Serial.begin(9600);
+  if(WIRELESS_SEND){Serial2.begin(9600);}
+  if(USB_SEND){Serial.begin(9600);}
   for(int i=0; i<4; i++){
     for(int n=0; n<3; n++){
       pinMode(colorpins[i][n], OUTPUT);

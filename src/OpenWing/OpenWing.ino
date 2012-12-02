@@ -83,16 +83,17 @@ void loop(){
     fader_raws[i] = analogRead(faders[i]);
     fader_vals[i] = map(fader_raws[i], 0, 1023, 0, 255);
   }
-  // read incoming serial messages on wireless connection
-  if(WIRELESS_SEND){
-    recieve_wireless();
-  }
-  // read incoming serial messages on usb (wired) connection
-  if(USB_SEND){
-    recieve_usb();
-  }
+  // read incoming serial messages on available connections
+  if(WIRELESS_SEND){ recieve_wireless(); }
+  if(USB_SEND){ recieve_usb(); }
+
+
   set_colors();
-  send_data();
+
+  // send data over serial on available connections
+  if(WIRELESS_SEND){ send_data_wireless(); }
+  if(USB_SEND){ send_data_usb(); }
+
   delay(25);
 }
 
@@ -115,8 +116,8 @@ void set_colors(){
     }
   }
 }
-void send_data(){
-  // send the states of all buttons and faders over serial
+void send_data_wireless(){
+  // send the states of all buttons and faders over wireless serial
   Serial2.write("dx");
   for(int i=0; i<4; i++){
     Serial2.write(button_states[i]);
@@ -128,6 +129,21 @@ void send_data(){
   Serial2.write(trackYp);
   Serial2.write(trackXm);
   Serial2.write(trackYm);
+  trackXm = trackYm = trackXp = trackYp = 0;
+}
+void send_data_usb(){
+  // send the states of all buttons and faders over usb serial
+  Serial.write("dx");
+  for(int i=0; i<4; i++){
+    Serial.write(button_states[i]);
+  }
+  for(int i=0; i<8; i++){
+    Serial.write(fader_vals[i]);
+  }
+  Serial.write(trackXp);
+  Serial.write(trackYp);
+  Serial.write(trackXm);
+  Serial.write(trackYm);
   trackXm = trackYm = trackXp = trackYp = 0;
 }
 

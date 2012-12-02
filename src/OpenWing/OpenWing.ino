@@ -21,9 +21,8 @@
 #include <Ethernet.h>
 
 #define WIRELESS_SEND  true  //set true to stream control data over the wireless connection (if wireless radio is present)
-#define USB_SEND       true //set true to stream control data over the usb connection
-#define OSC_SEND       true  //set true to send control data as OSC over ethernet IP network (if ethernet hardware is present)
-
+#define USB_SEND       true  //set true to stream control data over the usb connection
+#define OSC_SEND       false //set true to send control data as OSC over ethernet IP network (if ethernet hardware is present)
 
 
 const int myIp[]           = {192, 168, 10, 210};
@@ -111,11 +110,12 @@ void set_colors(){
         // else use the color as defined in colorvals
         analogWrite(colorpins[i][0], colorvals[i][0]);
         analogWrite(colorpins[i][1], colorvals[i][1]);
-        analogWrite(colorpins[i][2], colorvals[i][1]);
+        analogWrite(colorpins[i][2], colorvals[i][2]);
       }
     }
   }
 }
+
 void send_data_wireless(){
   // send the states of all buttons and faders over wireless serial
   Serial2.write("dx");
@@ -131,6 +131,7 @@ void send_data_wireless(){
   Serial2.write(trackYm);
   trackXm = trackYm = trackXp = trackYp = 0;
 }
+
 void send_data_usb(){
   // send the states of all buttons and faders over usb serial
   Serial.write("dx");
@@ -163,6 +164,7 @@ void recieve_usb(){
     }
   }
 }
+
 void recieve_wireless(){
   if(Serial2.available() > 1){
     byte c1 = Serial2.read();
@@ -180,6 +182,7 @@ void recieve_wireless(){
   }
 }
 
+// define ISR functions for handling trackball  via interrupts
 void trackUp(){
   trackYp = trackYp + 1;
 }

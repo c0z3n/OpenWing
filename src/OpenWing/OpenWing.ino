@@ -21,7 +21,7 @@
 #include <Ethernet.h>
 
 #define WIRELESS_SEND  true  //set true to stream control data over the wireless connection (if wireless radio is present)
-#define USB_SEND       true  //set true to stream control data over the usb connection
+#define USB_SEND       false //set true to stream control data over the usb connection
 #define OSC_SEND       true  //set true to send control data as OSC over ethernet IP network (if ethernet hardware is present)
 
 
@@ -83,20 +83,13 @@ void loop(){
     fader_raws[i] = analogRead(faders[i]);
     fader_vals[i] = map(fader_raws[i], 0, 1023, 0, 255);
   }
-  // read incoming serial messages
-  if(Serial2.available() > 1){
-    byte c1 = Serial2.read();
-    byte c2 = Serial2.read();
-    // check for the alignment key
-    if(c1 == 'l' && c2 == 'x'){
-      byte lednum = Serial2.read();
-      byte r = Serial2.read();
-      byte g = Serial2.read();
-      byte b = Serial2.read();
-      colorvals[lednum][0] = int(r);
-      colorvals[lednum][1] = int(g);
-      colorvals[lednum][2] = int(b);
-    }
+  // read incoming serial messages on wireless connection
+  if(WIRELESS_SEND){
+    recieve_wireless();
+  }
+  // read incoming serial messages on usb (wired) connection
+  if(USB_SEND){
+    recieve_usb();
   }
   set_colors();
   send_data();
@@ -122,7 +115,6 @@ void set_colors(){
     }
   }
 }
-
 void send_data(){
   // send the states of all buttons and faders over serial
   Serial2.write("dx");
@@ -137,7 +129,39 @@ void send_data(){
   Serial2.write(trackXm);
   Serial2.write(trackYm);
   trackXm = trackYm = trackXp = trackYp = 0;
-  
+}
+
+void recieve_usb(){
+  if(Serial.available() > 1){
+    byte c1 = Serial.read();
+    byte c2 = Serial.read();
+    // check for the alignment key
+    if(c1 == 'l' && c2 == 'x'){
+      byte lednum = Serial.read();
+      byte r = Serial.read();
+      byte g = Serial.read();
+      byte b = Serial.read();
+      colorvals[lednum][0] = int(r);
+      colorvals[lednum][1] = int(g);
+      colorvals[lednum][2] = int(b);
+    }
+  }
+}
+void recieve_wireless(){
+  if(Serial2.available() > 1){
+    byte c1 = Serial2.read();
+    byte c2 = Serial2.read();
+    // check for the alignment key
+    if(c1 == 'l' && c2 == 'x'){
+      byte lednum = Serial2.read();
+      byte r = Serial2.read();
+      byte g = Serial2.read();
+      byte b = Serial2.read();
+      colorvals[lednum][0] = int(r);
+      colorvals[lednum][1] = int(g);
+      colorvals[lednum][2] = int(b);
+    }
+  }
 }
 
 void trackUp(){

@@ -19,6 +19,7 @@
 
 import serial
 import threading
+import time
 from collections import deque
 
 class Controls(object):
@@ -27,6 +28,7 @@ class Controls(object):
         self.fader      = list((0, 0, 0, 0, 0, 0, 0, 0))
         self.button     = list((0, 0, 0, 0))
         self.trackball  = list((0, 0))
+        self.track_diff = list((0,0))
 
         # configuration and communication info
         self.ip_address = "0.0.0.0"
@@ -97,10 +99,21 @@ class Controls(object):
                 # apply that the new data to the control objects
                 self.button = listdata[:4]
                 self.fader = listdata[4:12]
+
+                self.track_diff = list((0,0))
+
                 self.trackball[0] += listdata[12]
-                self.trackball[1] += listdata[13]
+                self.track_diff[0] += listdata[12]
+
+                self.trackball[1] += listdata[15]
+                self.track_diff[1] += listdata[15]
+
                 self.trackball[0] -= listdata[14]
-                self.trackball[1] -= listdata[15]
+                self.track_diff[0] -= listdata[14]
+
+                self.trackball[1] -= listdata[13]
+                self.track_diff[1] -= listdata[13]
+
 
         except Exception as e:
             print e
@@ -108,4 +121,7 @@ class Controls(object):
 
 if __name__ == "__main__":
     c = Controls(3)
+    while True:
+        print repr(c.button), repr(c.trackball),repr(c.fader)
+        time.sleep(0.1)
 

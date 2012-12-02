@@ -21,7 +21,7 @@
 #include <Ethernet.h>
 
 #define WIRELESS_SEND  true  //set true to stream control data over the wireless connection (if wireless radio is present)
-#define USB_SEND       false //set true to stream control data over the usb connection
+#define USB_SEND       true //set true to stream control data over the usb connection
 #define OSC_SEND       true  //set true to send control data as OSC over ethernet IP network (if ethernet hardware is present)
 
 

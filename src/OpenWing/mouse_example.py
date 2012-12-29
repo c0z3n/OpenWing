@@ -1,7 +1,7 @@
-from controls import Controls
+from openwing import OpenWing
 import win32api, win32con, time
 SENS = 6
-c = Controls(3)
+c = OpenWing(3)
 last_b0 = last_b1 = b0 = b1 = 0
 
 while(True):

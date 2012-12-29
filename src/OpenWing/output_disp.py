@@ -5,7 +5,7 @@
 
 
 from pyprocessing import *
-from controls import Controls
+from openwing import OpenWing
 
 def setup():
     size(800,400, caption="OpenWing Viewer")
@@ -41,5 +41,5 @@ def button_array(x, y, spacing):
     for ind in xrange(4):
         draw_button(x, y+spacing*ind, 3-ind)
 
-c = Controls(0)
+c = OpenWing(3)
 run()

@@ -1,4 +1,4 @@
-# Controls.py - the python interface for programming with the OpenWing project
+# openwing.py - the python interface for programming with the OpenWing project
 # full repository located at github.com/c0z3n/OpenWing
 # contact gordon.p.clement@gmail.com
 #
@@ -22,7 +22,7 @@ import threading
 import time
 from collections import deque
 
-class Controls(object):
+class OpenWing(object):
     def __init__(self, comport, baud=9600):
         # top level variables to store OpenWing control status
         self.fader      = list((0, 0, 0, 0, 0, 0, 0, 0))
@@ -57,6 +57,7 @@ class Controls(object):
             raise ValueError("invalid lednum provided, \"%s\" is out of range" %lednum)
 
         self.outbound.append("lx" + chr(lednum) + chr(255-color[0]) + chr(255-color[1]) + chr(255-color[2]))
+        print "setting color", str(lednum), str(255-color[0]), str(255-color[1]), str(255-color[2])
 
 
     def spawn_updater(self):
@@ -120,7 +121,7 @@ class Controls(object):
 
 
 if __name__ == "__main__":
-    c = Controls(3)
+    c = OpenWing(3)
     while True:
         print repr(c.button), repr(c.trackball),repr(c.fader)
         time.sleep(0.1)

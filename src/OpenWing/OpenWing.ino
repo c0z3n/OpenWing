@@ -20,19 +20,27 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
+// configuration stuff, pins, ethernet information, etc.
 const int myIp[]           = {192, 168, 10, 210};
 const byte myMac[]         = {0x90, 0xA2, 0xDA, 0x0D, 0x18, 0x24};
 const int faders[]         = {4, 5, 6, 7, 8, 9, 10, 11};
 const int colorpins[][3]   = {{12, 13, 11}, {8, 9, 7}, {5, 6, 4}, {2, 3, 44}};
 const int buttons[]        = {A0, A1, A2, A3};
 
+// the initial color values for the buttons. 
+// colors are inverted to what you might expect, (255, 255, 255) is LED off.
 int  colorvals[][3]        = {{255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}};
+
+//variables to keep track of the buttons
 byte lastbuttons[]         = {0, 0, 0, 0};
 byte button_states[]       = {0, 0, 0, 0};
+
+//variables to keep track of the fader values and re-mapped fader values.
 int  fader_raws[]          = {0, 0, 0, 0, 0, 0, 0, 0};
 byte fader_vals[]          = {0, 0, 0, 0, 0, 0, 0, 0};
 byte last_fader_vals[]     = {0, 0, 0, 0, 0, 0, 0, 0};
 
+// variables to keep track of the trackball between "frames"
 byte trackXp               = 0;
 byte trackYp               = 0;
 byte trackXm               = 0;
@@ -91,6 +99,12 @@ void loop(){
       colorvals[lednum][1] = int(g);
       colorvals[lednum][2] = int(b);
     }
+    else{
+      while(Serial2.available() > 0){
+        byte temp = Serial2.read();
+      }
+      Serial2.flush();
+    }
   }
   set_colors();
   send_data();
@@ -111,7 +125,7 @@ void set_colors(){
         // else use the color as defined in colorvals
         analogWrite(colorpins[i][0], colorvals[i][0]);
         analogWrite(colorpins[i][1], colorvals[i][1]);
-        analogWrite(colorpins[i][2], colorvals[i][1]);
+        analogWrite(colorpins[i][2], colorvals[i][2]);
       }
     }
   }

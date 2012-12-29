@@ -1,7 +1,7 @@
-from pysimpledmx import *
-from controls import Controls
+from pysimpledmx import DMXConnection
+from openwing import OpenWing
 
-c = Controls(3)
+c = OpenWing(3)
 dmx = DMXConnection(7)
 
 while True:

@@ -62,7 +62,7 @@ void setup(){
   }
   for(int i=0; i<8; i++){
     fader_raws[i] = analogRead(faders[i]);
-    fader_vals[i] = last_fader_vals[i] = map(fader_raws[i], 0, 1023, 0, 255);
+    fader_vals[i] = last_fader_vals[i] = fader_raws[i] >> 2;
   }
   attachInterrupt(2, trackLeft, CHANGE);
   attachInterrupt(3, trackRight, CHANGE);
@@ -83,7 +83,7 @@ void loop(){
   // check the fader states and map them to the correct range
   for(int i=0; i<8; i++){
     fader_raws[i] = analogRead(faders[i]);
-    fader_vals[i] = map(fader_raws[i], 0, 1023, 0, 255);
+    fader_vals[i] = fader_raws[i] >> 2;
   }
   // read incoming serial messages
   if(Serial2.available() > 1){

@@ -27,6 +27,7 @@ byte button_flags[]        = {0, 0, 0, 0};
 byte fader_IDs[]           = {1, 2, 3, 4, 5, 6, 7, 8};
 byte button_IDs[]          = {9, 10, 11, 12};
 
+byte packet_open           = 0;
 
 void setup(){
   analogReference(EXTERNAL);
@@ -104,32 +105,50 @@ void loop(){
 //    }
 //  }
 //  set_colors();
-  send_data();
-  delay(25);
+  broadcast(Serial);
+  delay(5);
 }
 
-void send_data(){
+void broadcast(HardwareSerial &com){
   byte sent_start = 0;
+  byte bytecount = get_bytecount();
+  
   for(int i=0; i<8; i++){
     if(fader_flags[i] == 1){
-      if(sent_start == 0){
-        Serial.write(sent_start);
-        Serial.write(sent_start);
-        sent_start = 1;
-      }
-      Serial.write(fader_IDs[i]);
-      Serial.write(fader_vals[i]);
+      send_value(com, bytecount, fader_IDs[i], fader_vals[i]);
     }
   }
   for(int i=0; i<4; i++){
     if(button_flags[i] == 1){
-      if(sent_start == 0){
-        Serial.write(sent_start);
-        Serial.write(sent_start);
-        sent_start = 1;
-      }
-      Serial.write(button_IDs[i]);
-      Serial.write(button_states[i]);
-    }      
+      send_value(com, bytecount, button_IDs[i], button_states[i]);
+    }
   }
+  packet_open = 0;
 }
+
+byte get_bytecount(){
+  byte count = 0;
+  for(int i=0; i<8; i++){
+    if(fader_flags[i] == 1){
+      count++;
+    }
+  }
+  for(int i=0; i<4; i++){
+    if(button_flags[i] == 1){
+      count++;
+    }
+  }
+  return count;
+}
+
+void send_value(HardwareSerial &com, byte bytecount, byte id, byte value){
+  if(packet_open == 0){
+    com.write(byte(0));
+    com.write(byte(0));
+    com.write(bytecount);
+    packet_open = 1;
+  }
+  com.write(id);
+  com.write(value);
+}
+

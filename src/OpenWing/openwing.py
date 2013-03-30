@@ -23,7 +23,7 @@ import time
 from collections import deque
 
 class OpenWing(object):
-    def __init__(self, comport, baud=9600):
+    def __init__(self, comport, baud=115200):
         # top level variables to store OpenWing control status
         self.fader      = list((0, 0, 0, 0, 0, 0, 0, 0))
         self.button     = list((0, 0, 0, 0))
@@ -31,6 +31,7 @@ class OpenWing(object):
         self.track_diff = list((0,0))
 
         # configuration and communication info
+        self.controlraw = list((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
         self.ip_address = "0.0.0.0"
         self.comport    = comport
         self.baud       = baud
@@ -81,48 +82,38 @@ class OpenWing(object):
                     s.write(self.outbound[0])
                     self.outbound.popleft()
 
-                # make sure we are aligned properly on the string by looking for a key of "dx"
-                while True:
-                    a1 = s.read(1)
-                    if a1 == "d":
-                        a2 = s.read(1)
-                        if a2 == "x":
-                            break
-                    # print "misaligned"
+                numbytes = 0
+                # make sure we are aligned properly on the string by looking for a key of 00
+                # followed by a packet size byte
+                if s.inWaiting() > 3:
+                    key = ord(s.read(1))+ord(s.read(1))
+                    if key > 0:
+                        # print "something's wrong"
+                        s.flushInput()
+                        continue
 
-                # get the list of raw bytes as chars from the serial
-                rawdata = s.read(16)
-                listdata = list()
-                # convert them into a list of usable numbers
-                for n in xrange(len(rawdata)):
-                    listdata.append(ord(rawdata[n]))
+                    numbytes = ord(s.read(1)) # grab the number of bytes we need to read off the buffer
+                    rawdata = s.read(numbytes*2) # get the list of raw bytes as chars from the buffer
+                    listdata = list()
+                    for n in xrange(len(rawdata)): # convert them into a list of usable numbers
+                        listdata.append(ord(rawdata[n]))
 
-                # apply that the new data to the control objects
-                self.button = listdata[:4]
-                self.fader = listdata[4:12]
+                    # apply that the new data to the control objects
+                    control_ids = list(listdata[0::2])
+                    control_vals = list(listdata[1::2])
+                    for n in xrange(len(control_ids)):
+                        self.controlraw[control_ids[n]-1] = control_vals[n]
 
-                self.track_diff = list((0,0))
-
-                self.trackball[0] += listdata[12]
-                self.track_diff[0] += listdata[12]
-
-                self.trackball[1] += listdata[15]
-                self.track_diff[1] += listdata[15]
-
-                self.trackball[0] -= listdata[14]
-                self.track_diff[0] -= listdata[14]
-
-                self.trackball[1] -= listdata[13]
-                self.track_diff[1] -= listdata[13]
-
+                    self.fader = self.controlraw[0:8]
+                    self.button = self.controlraw[8:12]
 
         except Exception as e:
             print e
 
 
 if __name__ == "__main__":
-    c = OpenWing(3)
+    c = OpenWing(4)
     while True:
-        print repr(c.button), repr(c.trackball),repr(c.fader)
+        print repr(c.button),repr(c.fader)
         time.sleep(0.1)
 

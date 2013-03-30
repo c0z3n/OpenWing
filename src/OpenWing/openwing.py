@@ -23,7 +23,7 @@ import time
 from collections import deque
 
 class OpenWing(object):
-    def __init__(self, comport, baud=115200):
+    def __init__(self, comport, baud=57600):
         # top level variables to store OpenWing control status
         self.fader      = list((0, 0, 0, 0, 0, 0, 0, 0))
         self.button     = list((0, 0, 0, 0))
@@ -31,7 +31,7 @@ class OpenWing(object):
         self.track_diff = list((0,0))
 
         # configuration and communication info
-        self.controlraw = list((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+        self.controlraw = list((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
         self.ip_address = "0.0.0.0"
         self.comport    = comport
         self.baud       = baud
@@ -53,11 +53,15 @@ class OpenWing(object):
         for c in color:
             if not 0 <= c <= 255:
                 raise ValueError("invalid color value provided, \"%s\" is out of range" %c)
+            if c == 255: # 255 is a reserved value
+                c = 254
 
         if not 0 <= lednum <= 4:
             raise ValueError("invalid lednum provided, \"%s\" is out of range" %lednum)
 
-        self.outbound.append("lx" + chr(lednum) + chr(255-color[0]) + chr(255-color[1]) + chr(255-color[2]))
+
+
+        self.outbound.append(chr(0) + chr((lednum+1)) + chr(255-color[0]) + chr(255-color[1]) + chr(255-color[2]))
         print "setting color", str(lednum), str(255-color[0]), str(255-color[1]), str(255-color[2])
 
 
@@ -106,14 +110,16 @@ class OpenWing(object):
 
                     self.fader = self.controlraw[0:8]
                     self.button = self.controlraw[8:12]
+                    self.trackball[0] += (self.controlraw[12]-self.controlraw[13])
+                    self.trackball[1] += (self.controlraw[14]-self.controlraw[15])
 
         except Exception as e:
             print e
 
 
 if __name__ == "__main__":
-    c = OpenWing(4)
+    c = OpenWing(12)
     while True:
-        print repr(c.button),repr(c.fader)
+        print repr(c.button),repr(c.fader),repr(c.trackball)
         time.sleep(0.1)
 

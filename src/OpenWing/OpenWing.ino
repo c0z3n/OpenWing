@@ -26,13 +26,17 @@ byte button_flags[]        = {0, 0, 0, 0};
 
 byte fader_IDs[]           = {1, 2, 3, 4, 5, 6, 7, 8};
 byte button_IDs[]          = {9, 10, 11, 12};
+byte track_IDs[]           = {13, 14, 15, 16};
 
 byte packet_open           = 0;
 
+byte track[]               = {0, 0, 0, 0};
+byte track_flags[]         = {0, 0, 0, 0};
+
 void setup(){
   analogReference(EXTERNAL);
-//  Serial2.begin(9600);
-  Serial.begin(115200);
+  Serial2.begin(57600);
+  Serial.begin(57600);
   for(int i=0; i<4; i++){
     for(int n=0; n<3; n++){
       pinMode(colorpins[i][n], OUTPUT);
@@ -47,10 +51,10 @@ void setup(){
     fader_raws[i] = analogRead(faders[i]);
     fader_vals[i] = last_fader_vals[i] = fader_raws[i] >> 2;
   }
-//  attachInterrupt(2, trackLeft, CHANGE);
-//  attachInterrupt(3, trackRight, CHANGE);
-//  attachInterrupt(4, trackUp, CHANGE);
-//  attachInterrupt(5, trackDown, CHANGE);
+  attachInterrupt(2, trackLeft, CHANGE);
+  attachInterrupt(3, trackRight, CHANGE);
+  attachInterrupt(4, trackUp, CHANGE);
+  attachInterrupt(5, trackDown, CHANGE);
 }
 
 void loop(){
@@ -83,30 +87,16 @@ void loop(){
       fader_flags[i] = 1;
     }
   }
-  // read incoming serial messages
-//  if(Serial2.available() > 1){
-//    byte c1 = Serial2.read();
-//    byte c2 = Serial2.read();
-//    // check for the alignment key
-//    if(c1 == 'l' && c2 == 'x'){
-//      byte lednum = Serial2.read();
-//      byte r = Serial2.read();
-//      byte g = Serial2.read();
-//      byte b = Serial2.read();
-//      colorvals[lednum][0] = int(r);
-//      colorvals[lednum][1] = int(g);
-//      colorvals[lednum][2] = int(b);
-//    }
-//    else{
-//      while(Serial2.available() > 0){
-//        byte temp = Serial2.read();
-//      }
-//      Serial2.flush();
-//    }
-//  }
-//  set_colors();
+  read_incoming(Serial);
+  read_incoming(Serial);
+  set_colors();
   broadcast(Serial);
-  delay(5);
+  broadcast(Serial2);
+  for(int i=0; i<4; i++){
+    track[i] = 0;
+    track_flags[i] = 0; 
+  }
+  delay(10);
 }
 
 void broadcast(HardwareSerial &com){
@@ -123,6 +113,11 @@ void broadcast(HardwareSerial &com){
       send_value(com, bytecount, button_IDs[i], button_states[i]);
     }
   }
+  for(int i=0; i<4; i++){
+    if(track_flags[i] == 1){
+      send_value(com, bytecount, track_IDs[i], track[i]);
+    }   
+  }
   packet_open = 0;
 }
 
@@ -138,6 +133,12 @@ byte get_bytecount(){
       count++;
     }
   }
+  for(int i=0; i<4; i++){
+    if(track[i] != 0){
+      track_flags[i] = 1;
+      count++;
+    }
+  }
   return count;
 }
 
@@ -150,5 +151,60 @@ void send_value(HardwareSerial &com, byte bytecount, byte id, byte value){
   }
   com.write(id);
   com.write(value);
+}
+
+void read_incoming(HardwareSerial &com){
+    // read incoming serial messages
+  if(com.available() > 3){
+    byte key = com.read();
+    if(key == 0){
+      byte lednum = com.read();
+      byte r = com.read();
+      byte g = com.read();
+      byte b = com.read();
+      colorvals[lednum-1][0] = int(r);
+      colorvals[lednum-1][1] = int(g);
+      colorvals[lednum-1][2] = int(b);
+    }
+//    else{
+//      while(com.available() > 0){
+//        byte temp = Serial2.read();
+//      }
+//      com.flush();
+//    }
+  }
+}
+
+void set_colors(){
+// handle setting led colors
+  for(int i=0; i<4; i++){
+    for(int n=0; n<3; n++){
+      if(button_states[i] == 1){
+        // if a button is pressed, override the color with white.
+        analogWrite(colorpins[i][0], 0);
+        analogWrite(colorpins[i][1], 0);
+        analogWrite(colorpins[i][2], 0);
+      }
+      else{
+        // else use the color as defined in colorvals
+        analogWrite(colorpins[i][0], colorvals[i][0]);
+        analogWrite(colorpins[i][1], colorvals[i][1]);
+        analogWrite(colorpins[i][2], colorvals[i][2]);
+      }
+    }
+  }
+}
+
+void trackLeft(){
+  track[0] = track[0] + 1;
+}
+void trackRight(){
+  track[1] = track[1] + 1;
+}
+void trackUp(){
+  track[2] = track[2] + 1;
+}
+void trackDown(){
+  track[3] = track[3] + 1;
 }
 
